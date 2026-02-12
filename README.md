@@ -1,7 +1,7 @@
 ![Logo of LeanKeyboard](img/leankeykeyboard_logo_small.png "Logo of LeanKeyboard") LeanKeyboard
 =========
 
-[![MPLv2 License](http://img.shields.io/badge/license-MPLv2-blue.svg?style=flat-square)](https://www.mozilla.org/MPL/2.0/)
+[![MPLv2 License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](./LICENSE)
 
 __LeanKeyboard: Keyboard for Android-based set-top boxes and TVs:__
 
