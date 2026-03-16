@@ -31,6 +31,22 @@
     <dimen name="candidate_font_size">18.0sp</dimen>
     <dimen name="candidate_padding_horizontal">16.0dip</dimen>
     <dimen name="candidate_margin_horizontal">4.0dip</dimen>
+    <dimen name="prompt_bar_spacing_top">4.0dip</dimen>
+    <dimen name="prompt_voice_button_size">28.0dip</dimen>
+    <dimen name="prompt_voice_button_icon_padding">6.0dip</dimen>
+    <dimen name="remote_input_panel_width">172.0dip</dimen>
+    <dimen name="remote_input_panel_height">204.0dip</dimen>
+    <dimen name="remote_input_panel_margin_end">16.0dip</dimen>
+    <dimen name="remote_input_panel_padding_horizontal">14.0dip</dimen>
+    <dimen name="remote_input_panel_padding_vertical">12.0dip</dimen>
+    <dimen name="remote_input_title_size">16.0sp</dimen>
+    <dimen name="remote_input_status_size">11.0sp</dimen>
+    <dimen name="remote_input_url_size">10.0sp</dimen>
+    <dimen name="remote_input_qr_size">112.0dip</dimen>
+    <dimen name="remote_input_qr_padding">6.0dip</dimen>
+    <dimen name="remote_input_qr_margin_top">10.0dip</dimen>
+    <dimen name="remote_input_status_margin_top">10.0dip</dimen>
+    <dimen name="remote_input_url_margin_top">8.0dip</dimen>
     <!-- Unused values -->
     <dimen name="mode_change_key_font_size">7.0sp</dimen>
     <dimen name="text_size_dp">15dp</dimen>

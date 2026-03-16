@@ -7,13 +7,27 @@
           android:layout_height="wrap_content" android:layout_alignBottom="@id/suggestions_container" android:layout_alignParentLeft="true"
           android:layout_alignParentTop="true" android:layout_alignParentRight="true"/>
     <HorizontalScrollView android:gravity="center" android:id="@+id/suggestions_container" android:scrollbars="none" android:clipChildren="false"
-                          android:layout_width="wrap_content" android:layout_height="@dimen/key_height"
+                          android:layout_width="fill_parent" android:layout_height="@dimen/key_height"
                           android:layout_marginLeft="@dimen/candidate_scroll_view_horz_spacing"
-                          android:layout_marginRight="@dimen/candidate_scroll_view_horz_spacing" android:fillViewport="false"
-                          android:layout_alignParentTop="true" android:layout_centerHorizontal="true">
+                          android:layout_marginTop="@dimen/prompt_bar_spacing_top"
+                          android:layout_marginRight="96dp" android:fillViewport="false"
+                          android:layout_alignParentTop="true" android:layout_alignParentLeft="true">
         <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@+id/suggestions" android:clipChildren="false"
                       android:layout_width="wrap_content" android:layout_height="wrap_content" android:divider="@null" android:showDividers="middle"/>
     </HorizontalScrollView>
+    <ImageButton android:id="@+id/top_voice_button"
+                 android:layout_width="@dimen/prompt_voice_button_size"
+                 android:layout_height="@dimen/prompt_voice_button_size"
+                 android:layout_alignTop="@id/suggestions_container"
+                 android:layout_alignBottom="@id/suggestions_container"
+                 android:layout_alignParentRight="true"
+                 android:layout_marginTop="@dimen/prompt_bar_spacing_top"
+                 android:layout_marginRight="@dimen/candidate_scroll_view_horz_spacing"
+                 android:background="@drawable/prompt_voice_button_background"
+                 android:contentDescription="@string/keyboardview_keycode_voice"
+                 android:padding="@dimen/prompt_voice_button_icon_padding"
+                 android:scaleType="centerInside"
+                 android:src="@drawable/ic_ime_voice" />
     <LinearLayout android:gravity="center" android:id="@+id/keyboard" android:paddingTop="@dimen/keyboard_top_spacing" android:clipChildren="false"
                   android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_below="@id/suggestions_container"
                   android:layout_centerHorizontal="true">

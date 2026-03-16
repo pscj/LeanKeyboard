@@ -1,15 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- TODO: modified -->
-<RelativeLayout android:gravity="bottom" android:focusable="false" android:clipChildren="false" android:layout_width="fill_parent" android:layout_height="wrap_content"
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:leanbackime="http://schemas.android.com/apk/res-auto">
-    <LinearLayout android:id="@+id/keyboard" android:orientation="horizontal" android:clipChildren="false" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerHorizontal="true">
-        <com.liskovsoft.leankeyboard.addons.resize.ResizeableLeanbackKeyboardView android:id="@+id/main_keyboard" android:clipChildren="false" android:layout_width="wrap_content" android:layout_height="wrap_content" leanbackime:rowCount="5" leanbackime:columnCount="11" />
+<RelativeLayout android:gravity="bottom"
+    android:focusable="false"
+    android:clipChildren="false"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:leanbackime="http://schemas.android.com/apk/res-auto">
+    <LinearLayout
+        android:id="@+id/input_content"
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:clipChildren="false">
+        <LinearLayout
+            android:id="@+id/remote_input_panel"
+            android:orientation="vertical"
+            android:layout_width="@dimen/remote_input_panel_width"
+            android:layout_height="@dimen/remote_input_panel_height"
+            android:layout_marginRight="@dimen/remote_input_panel_margin_end"
+            android:background="@drawable/remote_input_panel_background"
+            android:paddingLeft="@dimen/remote_input_panel_padding_horizontal"
+            android:paddingTop="@dimen/remote_input_panel_padding_vertical"
+            android:paddingRight="@dimen/remote_input_panel_padding_horizontal"
+            android:paddingBottom="@dimen/remote_input_panel_padding_vertical"
+            android:gravity="center"
+            android:focusable="false">
+            <FrameLayout
+                android:id="@+id/remote_input_qr_frame"
+                android:layout_width="@dimen/remote_input_qr_size"
+                android:layout_height="@dimen/remote_input_qr_size"
+                android:background="@drawable/remote_input_qr_background"
+                android:padding="@dimen/remote_input_qr_padding">
+                <ImageView
+                    android:id="@+id/remote_input_qr"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/remote_input_qr_content_description"
+                    android:scaleType="fitCenter" />
+            </FrameLayout>
+            <TextView
+                android:id="@+id/remote_input_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/remote_input_status_margin_top"
+                android:gravity="center"
+                android:text="@string/remote_input_unavailable"
+                android:textColor="@color/key_text_default"
+                android:textSize="@dimen/remote_input_status_size"
+                android:fontFamily="sans-serif-regular" />
+            <TextView
+                android:id="@+id/remote_input_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/remote_input_url_margin_top"
+                android:gravity="center"
+                android:textColor="@color/candidate_font_color"
+                android:textSize="@dimen/remote_input_url_size"
+                android:visibility="gone"
+                android:fontFamily="sans-serif-regular" />
+        </LinearLayout>
+        <RelativeLayout
+            android:id="@+id/keyboard_area"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clipChildren="false">
+            <LinearLayout
+                android:id="@+id/keyboard"
+                android:orientation="horizontal"
+                android:clipChildren="false"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <com.liskovsoft.leankeyboard.addons.resize.ResizeableLeanbackKeyboardView
+                    android:id="@+id/main_keyboard"
+                    android:clipChildren="false"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    leanbackime:rowCount="5"
+                    leanbackime:columnCount="11" />
+            </LinearLayout>
+            <FrameLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@id/keyboard"
+                android:layout_alignBottom="@id/keyboard">
+                <com.liskovsoft.leankeyboard.ime.voice.RecognizerView
+                    android:id="@+id/voice"
+                    android:layout_gravity="center"
+                    android:visibility="invisible"
+                    android:layout_width="@dimen/recognizer_size"
+                    android:layout_height="@dimen/recognizer_size" />
+            </FrameLayout>
+        </RelativeLayout>
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="@dimen/remote_input_panel_margin_end"
+            android:foregroundGravity="center"
+            android:gravity="center_vertical">
+            <Button
+                android:id="@+id/enter"
+                android:textSize="@dimen/enter_key_font_size"
+                android:textColor="@color/enter_key_font_color"
+                android:layout_gravity="center"
+                android:background="@null"
+                android:paddingLeft="@dimen/enter_key_padding_horizontal"
+                android:paddingRight="@dimen/enter_key_padding_horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/enter_key_height"
+                android:text="@string/label_next_key"
+                android:fontFamily="sans-serif-regular" />
+        </FrameLayout>
     </LinearLayout>
-    <FrameLayout android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignTop="@id/keyboard" android:layout_alignBottom="@id/keyboard" android:layout_centerHorizontal="true">
-        <com.liskovsoft.leankeyboard.ime.voice.RecognizerView android:id="@+id/voice" android:layout_gravity="center" android:visibility="invisible" android:layout_width="@dimen/recognizer_size" android:layout_height="@dimen/recognizer_size" />
-    </FrameLayout>
-    <FrameLayout android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_toRightOf="@id/keyboard" android:layout_alignTop="@id/keyboard" android:layout_alignBottom="@id/keyboard" android:layout_alignParentRight="true">
-        <Button android:id="@+id/enter" android:textSize="@dimen/enter_key_font_size" android:textColor="@color/enter_key_font_color" android:layout_gravity="center" android:background="@null" android:paddingLeft="@dimen/enter_key_padding_horizontal" android:paddingRight="@dimen/enter_key_padding_horizontal" android:layout_width="wrap_content" android:layout_height="@dimen/enter_key_height" android:text="@string/label_next_key" android:fontFamily="sans-serif-regular" />
-    </FrameLayout>
 </RelativeLayout>

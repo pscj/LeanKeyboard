@@ -61,4 +61,10 @@
     <string name="show_launcher_icon_desc">Show launcher icon</string>
     <string name="enable_cyclic_navigation">Сyclic navigation</string>
     <string name="enable_cyclic_navigation_desc">Сyclic navigation through keyboard</string>
+    <string name="remote_input_title">扫描配对</string>
+    <string name="remote_input_hint">扫描二维码继续在手机输入。</string>
+    <string name="remote_input_unavailable">未连接网络，暂时无法生成二维码。</string>
+    <string name="remote_input_server_error">本地输入服务启动失败。</string>
+    <string name="remote_input_address_prefix">地址：%1$s</string>
+    <string name="remote_input_qr_content_description">远程输入二维码</string>
 </resources>

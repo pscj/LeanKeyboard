@@ -9,6 +9,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -35,12 +36,16 @@ import android.view.inputmethod.InputConnection;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
+import android.widget.TextView;
 import androidx.core.content.ContextCompat;
+import com.google.zxing.WriterException;
 import com.liskovsoft.leankeyboard.addons.keyboards.KeyboardManager.KeyboardData;
+import com.liskovsoft.leankeyboard.addons.remoteinput.QrCodeBitmapFactory;
 import com.liskovsoft.leankeyboard.addons.theme.ThemeManager;
 import com.liskovsoft.leankeyboard.addons.voice.RecognizerIntentWrapper;
 import com.liskovsoft.leankeyboard.helpers.PermissionHelpers;
@@ -108,6 +113,11 @@ public class LeanbackKeyboardContainer {
     private PointF mPhysicalTouchPos = new PointF(2.0F, 0.5F);
     private LeanbackKeyboardView mPrevView;
     private Intent mRecognizerIntent;
+    private View mRemoteInputQrFrame;
+    private ImageView mRemoteInputQrView;
+    private TextView mRemoteInputStatusView;
+    private TextView mRemoteInputUrlView;
+    private ImageButton mTopVoiceButton;
     private Rect mRect = new Rect();
     private RelativeLayout mRootView;
     private View mSelector;
@@ -196,6 +206,11 @@ public class LeanbackKeyboardContainer {
         mSuggestionsBg = mRootView.findViewById(R.id.candidate_background);
         mSuggestionsContainer = (HorizontalScrollView) mRootView.findViewById(R.id.suggestions_container);
         mSuggestions = (LinearLayout) mSuggestionsContainer.findViewById(R.id.suggestions);
+        mRemoteInputQrFrame = mRootView.findViewById(R.id.remote_input_qr_frame);
+        mRemoteInputQrView = mRootView.findViewById(R.id.remote_input_qr);
+        mRemoteInputStatusView = mRootView.findViewById(R.id.remote_input_status);
+        mRemoteInputUrlView = mRootView.findViewById(R.id.remote_input_url);
+        mTopVoiceButton = mRootView.findViewById(R.id.top_voice_button);
         mMainKeyboardView = (LeanbackKeyboardView) mRootView.findViewById(R.id.main_keyboard);
         mVoiceButtonView = (RecognizerView) mRootView.findViewById(R.id.voice);
         mActionButtonView = (Button) mRootView.findViewById(R.id.enter);
@@ -235,8 +250,49 @@ public class LeanbackKeyboardContainer {
                 cancelVoiceRecording();
             }
         });
+        if (mTopVoiceButton != null) {
+            mTopVoiceButton.setOnClickListener(view -> startVoiceRecording());
+        }
         mKeyboardManager = new KeyboardManager(mContext);
         initKeyboards();
+        showRemoteInputUnavailable(R.string.remote_input_unavailable);
+    }
+
+    public void showRemoteInputReady(String accessUrl) {
+        if (mRemoteInputQrFrame == null || mRemoteInputQrView == null ||
+                mRemoteInputStatusView == null || mRemoteInputUrlView == null) {
+            return;
+        }
+
+        int qrSizePx = mContext.getResources().getDimensionPixelSize(R.dimen.remote_input_qr_size);
+        int qrPaddingPx = mContext.getResources().getDimensionPixelSize(R.dimen.remote_input_qr_padding);
+
+        try {
+            Bitmap bitmap = QrCodeBitmapFactory.create(accessUrl, qrSizePx - qrPaddingPx * 2);
+            mRemoteInputQrView.setImageBitmap(bitmap);
+            mRemoteInputQrFrame.setVisibility(View.VISIBLE);
+            mRemoteInputStatusView.setText(R.string.remote_input_hint);
+            mRemoteInputStatusView.setVisibility(View.VISIBLE);
+            mRemoteInputUrlView.setText(null);
+            mRemoteInputUrlView.setVisibility(View.GONE);
+        } catch (WriterException e) {
+            Log.e(TAG, "Unable to generate QR code", e);
+            showRemoteInputUnavailable(R.string.remote_input_server_error);
+        }
+    }
+
+    public void showRemoteInputUnavailable(int messageResId) {
+        if (mRemoteInputQrFrame == null || mRemoteInputQrView == null ||
+                mRemoteInputStatusView == null || mRemoteInputUrlView == null) {
+            return;
+        }
+
+        mRemoteInputQrView.setImageDrawable(null);
+        mRemoteInputQrFrame.setVisibility(View.INVISIBLE);
+        mRemoteInputStatusView.setText(messageResId);
+        mRemoteInputStatusView.setVisibility(View.VISIBLE);
+        mRemoteInputUrlView.setText(null);
+        mRemoteInputUrlView.setVisibility(View.GONE);
     }
 
     private void configureFocus(KeyFocus focus, Rect rect, int index, int type) {
@@ -1198,9 +1254,18 @@ public class LeanbackKeyboardContainer {
 
     public void updateSuggestions(ArrayList<String> suggestions) {
         addUserInputToSuggestions(suggestions);
+        ArrayList<String> visibleSuggestions = new ArrayList<>();
+
+        for (String suggestion : suggestions) {
+            String normalizedSuggestion = normalizeSuggestionText(suggestion);
+
+            if (normalizedSuggestion != null) {
+                visibleSuggestions.add(normalizedSuggestion);
+            }
+        }
 
         int oldCount = mSuggestions.getChildCount();
-        int newCount = suggestions.size();
+        int newCount = visibleSuggestions.size();
         if (newCount < oldCount) {
             mSuggestions.removeViews(newCount, oldCount - newCount);
         } else if (newCount > oldCount) {
@@ -1213,8 +1278,8 @@ public class LeanbackKeyboardContainer {
 
         for (oldCount = 0; oldCount < newCount; ++oldCount) {
             Button suggestion = mSuggestions.getChildAt(oldCount).findViewById(R.id.text);
-            suggestion.setText(suggestions.get(oldCount));
-            suggestion.setContentDescription(suggestions.get(oldCount));
+            suggestion.setText(visibleSuggestions.get(oldCount));
+            suggestion.setContentDescription(visibleSuggestions.get(oldCount));
         }
 
         if (getCurrFocus().type == KeyFocus.TYPE_SUGGESTION) {
@@ -1224,25 +1289,34 @@ public class LeanbackKeyboardContainer {
         mThemeManager.updateSuggestionsTheme();
     }
 
-    /**
-     * Useful for password fields
-     */
     private void addUserInputToSuggestions(ArrayList<String> suggestions) {
         InputConnection connection = mContext.getCurrentInputConnection();
 
         if (connection != null) {
-            String editorText = LeanbackUtils.getEditorText(connection);
+            String editorText = normalizeSuggestionText(LeanbackUtils.getEditorText(connection));
 
-            if (editorText.isEmpty()) {
-                editorText = mLabel;
+            if (editorText == null) {
+                editorText = normalizeSuggestionText(mLabel);
             }
 
-            if (suggestions.size() == 0) {
-                suggestions.add(editorText);
-            } else {
-                suggestions.set(0, editorText);
+            if (editorText != null) {
+                if (suggestions.size() == 0) {
+                    suggestions.add(editorText);
+                } else {
+                    suggestions.set(0, editorText);
+                }
             }
         }
+    }
+
+    private String normalizeSuggestionText(String suggestion) {
+        if (suggestion == null) {
+            return null;
+        }
+
+        String normalizedSuggestion = suggestion.trim();
+
+        return TextUtils.isEmpty(normalizedSuggestion) ? null : normalizedSuggestion;
     }
 
     public void onLangKeyClick() {

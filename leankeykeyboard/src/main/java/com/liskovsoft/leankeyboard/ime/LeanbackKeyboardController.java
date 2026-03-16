@@ -847,6 +847,18 @@ public class LeanbackKeyboardController implements LeanbackKeyboardContainer.Voi
         mContainer.initKeyboards();
     }
 
+    public void showRemoteInputReady(String accessUrl) {
+        if (mContainer != null) {
+            mContainer.showRemoteInputReady(accessUrl);
+        }
+    }
+
+    public void showRemoteInputUnavailable(int messageResId) {
+        if (mContainer != null) {
+            mContainer.showRemoteInputUnavailable(messageResId);
+        }
+    }
+
     public void updateSuggestions(ArrayList<String> suggestions) {
         if (mContainer != null) {
             mContainer.updateSuggestions(suggestions);

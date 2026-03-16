@@ -17,8 +17,15 @@ import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import androidx.core.text.BidiFormatter;
+import com.liskovsoft.leankeyboard.addons.remoteinput.LocalTextBridgeServer;
+import com.liskovsoft.leankeyboard.addons.remoteinput.RemoteInputAddressHelper;
 import com.liskovsoft.leankeyboard.ime.LeanbackKeyboardController.InputListener;
 import com.liskovsoft.leankeyboard.utils.LeanKeyPreferences;
+import com.liskovsoft.leankeykeyboard.R;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 public class LeanbackImeService extends KeyMapperImeService {
     private static final String TAG = LeanbackImeService.class.getSimpleName();
@@ -37,6 +44,7 @@ public class LeanbackImeService extends KeyMapperImeService {
     private LeanbackSuggestionsFactory mSuggestionsFactory;
     public static final String COMMAND_RESTART = "restart";
     private boolean mForceShowKbd;
+    private LocalTextBridgeServer mLocalTextBridgeServer;
 
     @SuppressLint("HandlerLeak")
     private final Handler mHandler = new Handler() {
@@ -68,6 +76,7 @@ public class LeanbackImeService extends KeyMapperImeService {
         Log.d(TAG, "onCreate");
 
         initSettings();
+        mLocalTextBridgeServer = new LocalTextBridgeServer(this::submitExternalText);
     }
 
     private void setupDensity() {
@@ -277,6 +286,7 @@ public class LeanbackImeService extends KeyMapperImeService {
 
     @Override
     public void onFinishInputView(boolean finishingInput) {
+        stopLocalTextBridge();
         super.onFinishInputView(finishingInput);
         sendBroadcast(new Intent(IME_CLOSE));
         mSuggestionsFactory.clearSuggestions();
@@ -377,6 +387,7 @@ public class LeanbackImeService extends KeyMapperImeService {
         super.onStartInputView(info, restarting);
 
         mKeyboardController.onStartInputView();
+        startLocalTextBridge();
         sendBroadcast(new Intent(IME_OPEN));
         if (mKeyboardController.areSuggestionsEnabled()) {
             mSuggestionsFactory.createSuggestions();
@@ -393,11 +404,80 @@ public class LeanbackImeService extends KeyMapperImeService {
         }
     }
 
+    @Override
+    public void onDestroy() {
+        stopLocalTextBridge();
+        super.onDestroy();
+    }
+
     private void reInitKeyboard() {
         initSettings();
 
         if (mKeyboardController != null) {
             mKeyboardController.initKeyboards();
+        }
+    }
+
+    private void startLocalTextBridge() {
+        if (mLocalTextBridgeServer == null || mKeyboardController == null) {
+            return;
+        }
+
+        String hostAddress = RemoteInputAddressHelper.findLocalIpv4Address();
+
+        if (hostAddress == null) {
+            mKeyboardController.showRemoteInputUnavailable(R.string.remote_input_unavailable);
+            stopLocalTextBridge();
+            return;
+        }
+
+        try {
+            mLocalTextBridgeServer.start(hostAddress);
+            mKeyboardController.showRemoteInputReady(mLocalTextBridgeServer.getAccessUrl());
+        } catch (IOException e) {
+            Log.e(TAG, "Unable to start local text bridge", e);
+            mKeyboardController.showRemoteInputUnavailable(R.string.remote_input_server_error);
+            stopLocalTextBridge();
+        }
+    }
+
+    private void stopLocalTextBridge() {
+        if (mLocalTextBridgeServer != null) {
+            mLocalTextBridgeServer.stop();
+        }
+
+        if (mKeyboardController != null) {
+            mKeyboardController.showRemoteInputUnavailable(R.string.remote_input_unavailable);
+        }
+    }
+
+    private LocalTextBridgeServer.SubmitResult submitExternalText(String text) {
+        FutureTask<LocalTextBridgeServer.SubmitResult> task = new FutureTask<>(() -> {
+            InputConnection connection = getCurrentInputConnection();
+
+            if (connection == null) {
+                return LocalTextBridgeServer.SubmitResult.unavailable("当前没有可写入的输入框");
+            }
+
+            connection.commitText(text, 1);
+
+            if (mKeyboardController.areSuggestionsEnabled()) {
+                mKeyboardController.updateSuggestions(mSuggestionsFactory.getSuggestions());
+            }
+
+            return LocalTextBridgeServer.SubmitResult.success("内容已发送到电视");
+        });
+
+        mHandler.post(task);
+
+        try {
+            return task.get();
+        } catch (ExecutionException e) {
+            Log.e(TAG, "Failed to insert remote text", e);
+            return LocalTextBridgeServer.SubmitResult.internalError("写入输入框失败");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return LocalTextBridgeServer.SubmitResult.internalError("发送过程被中断");
         }
     }
 }

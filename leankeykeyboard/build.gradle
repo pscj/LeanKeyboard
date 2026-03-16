@@ -83,4 +83,5 @@ dependencies {
     implementation project.properties.constraintXVersion
     implementation project.properties.designXVersion
     implementation project.properties.voiceOverlayVersion
+    implementation 'com.google.zxing:core:3.5.3'
 }

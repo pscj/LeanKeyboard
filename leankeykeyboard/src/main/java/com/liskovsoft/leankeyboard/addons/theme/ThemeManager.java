@@ -2,12 +2,15 @@ package com.liskovsoft.leankeyboard.addons.theme;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 import com.liskovsoft.leankeyboard.ime.LeanbackKeyboardView;
 import com.liskovsoft.leankeyboard.utils.LeanKeyPreferences;
@@ -92,10 +95,39 @@ public class ThemeManager {
             candidateLayout.setBackgroundColor(ContextCompat.getColor(mContext, candidateBackground));
         }
 
+        View remoteInputPanel = mRootView.findViewById(R.id.remote_input_panel);
+
+        if (remoteInputPanel != null) {
+            Drawable background = remoteInputPanel.getBackground();
+
+            if (background instanceof GradientDrawable) {
+                ((GradientDrawable) background.mutate()).setColor(ContextCompat.getColor(mContext, candidateBackground));
+            } else {
+                remoteInputPanel.setBackgroundColor(ContextCompat.getColor(mContext, candidateBackground));
+            }
+        }
+
         Button enterButton = mRootView.findViewById(R.id.enter);
 
         if (enterButton != null) {
             enterButton.setTextColor(ContextCompat.getColor(mContext, enterFontColor));
+        }
+
+        ImageButton topVoiceButton = mRootView.findViewById(R.id.top_voice_button);
+
+        if (topVoiceButton != null) {
+            topVoiceButton.setColorFilter(ContextCompat.getColor(mContext, enterFontColor));
+        }
+
+        TextView remoteInputUrl = mRootView.findViewById(R.id.remote_input_url);
+        TextView remoteInputStatus = mRootView.findViewById(R.id.remote_input_status);
+
+        if (remoteInputUrl != null) {
+            remoteInputUrl.setTextColor(ContextCompat.getColor(mContext, enterFontColor));
+        }
+
+        if (remoteInputStatus != null) {
+            remoteInputStatus.setTextColor(ContextCompat.getColor(mContext, keyTextColor));
         }
 
         LeanbackKeyboardView keyboardView = mRootView.findViewById(R.id.main_keyboard);
