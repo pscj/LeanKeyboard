@@ -7,6 +7,7 @@ import android.inputmethodservice.InputMethodService;
 import android.os.Build.VERSION;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.InputDevice;
@@ -107,6 +108,15 @@ public class LeanbackImeService extends KeyMapperImeService {
 
     }
 
+    private void clearSuggestionsImmediately() {
+        mHandler.removeMessages(MSG_SUGGESTIONS_CLEAR);
+        mSuggestionsFactory.clearSuggestions();
+        if (mKeyboardController != null) {
+            mKeyboardController.clearSuggestions();
+        }
+        mShouldClearSuggestions = false;
+    }
+
     private void handleTextEntry(final int type, final int keyCode, final CharSequence text) {
         final InputConnection connection = getCurrentInputConnection();
         if (connection != null) {
@@ -140,7 +150,12 @@ public class LeanbackImeService extends KeyMapperImeService {
                         LeanbackUtils.sendDeleteKey(connection);
                     }
                     mEnterSpaceBeforeCommitting = false;
-                    updateSuggestions = true;
+                    if (TextUtils.isEmpty(LeanbackUtils.getEditorText(connection))) {
+                        clearSuggestionsImmediately();
+                        updateSuggestions = false;
+                    } else {
+                        updateSuggestions = true;
+                    }
                     break;
                 case InputListener.ENTRY_TYPE_SUGGESTION:
                 case InputListener.ENTRY_TYPE_VOICE:

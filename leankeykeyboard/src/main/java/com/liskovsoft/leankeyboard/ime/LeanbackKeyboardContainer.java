@@ -1297,6 +1297,7 @@ public class LeanbackKeyboardContainer {
     public void updateSuggestions(ArrayList<String> suggestions) {
         addUserInputToSuggestions(suggestions);
         ArrayList<String> visibleSuggestions = new ArrayList<>();
+        int previousSuggestionFocus = getCurrFocus().type == KeyFocus.TYPE_SUGGESTION ? getCurrFocus().index : -1;
 
         for (String suggestion : suggestions) {
             String normalizedSuggestion = normalizeSuggestionText(suggestion);
@@ -1326,7 +1327,11 @@ public class LeanbackKeyboardContainer {
 
         updateTopVoiceButtonVisibility();
 
-        if (getCurrFocus().type == KeyFocus.TYPE_SUGGESTION) {
+        if (previousSuggestionFocus >= 0) {
+            if (!restoreSuggestionFocus(Math.min(previousSuggestionFocus, newCount - 1))) {
+                resetFocusCursor();
+            }
+        } else if (getCurrFocus().type == KeyFocus.TYPE_SUGGESTION) {
             resetFocusCursor();
         }
 
@@ -1367,6 +1372,26 @@ public class LeanbackKeyboardContainer {
         return mTopVoiceButton != null &&
                 mTopVoiceButton.getVisibility() == View.VISIBLE &&
                 mTopVoiceButton.isEnabled();
+    }
+
+    private boolean restoreSuggestionFocus(int index) {
+        if (index < 0 || index >= mSuggestions.getChildCount()) {
+            return false;
+        }
+
+        View suggestion = mSuggestions.getChildAt(index);
+
+        if (suggestion == null) {
+            return false;
+        }
+
+        offsetRect(mRect, suggestion);
+        suggestion.requestFocus();
+        LeanbackUtils.sendAccessibilityEvent(suggestion.findViewById(R.id.text), true);
+        configureFocus(mTempKeyInfo, mRect, index, KeyFocus.TYPE_SUGGESTION);
+        setKbFocus(mTempKeyInfo, true, false);
+
+        return true;
     }
 
     private void updateTopVoiceButtonVisibility() {

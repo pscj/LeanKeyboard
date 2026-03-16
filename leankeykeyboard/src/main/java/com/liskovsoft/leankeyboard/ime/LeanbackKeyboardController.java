@@ -866,6 +866,12 @@ public class LeanbackKeyboardController implements LeanbackKeyboardContainer.Voi
 
     }
 
+    public void clearSuggestions() {
+        if (mContainer != null) {
+            mContainer.clearSuggestions();
+        }
+    }
+
     public void setHideWhenPhysicalKeyboardUsed(boolean hide) {
         mHideKeyboardWhenPhysicalKeyboardUsed = hide;
     }

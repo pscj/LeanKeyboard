@@ -5,6 +5,8 @@
 
 __LeanKeyboard: Keyboard for Android-based set-top boxes and TVs:__
 
+This repository is based on the original LeanKeyboard project and includes additional improvements for local remote input and day-to-day TV typing.
+
  * <a href="https://play.google.com/store/apps/details?id=org.liskovsoft.androidtv.rukeyboard" target="_blank">Google Play page</a>
  * <a href="https://t.me/LeanKeyboard">Telegram group</a>
 
@@ -13,14 +15,30 @@ __LeanKeyboard: Keyboard for Android-based set-top boxes and TVs:__
  * Any remote controller support.
  * Supports dozens of languages.
  * Doesn't depend on Google Services.
+ * Chinese (`zh`) translation included.
+ * Phone-to-TV local text bridge via QR code on the same LAN.
  * __No root required!__
 
 __Tip: Switch to other language with language button or by long press on the space bar__
 
 __Tip: Do long press on the language button to choose between available languages__
 
+
+### What's new in this fork:
+ * Local QR pairing page for continuing text input from a phone on the same local network.
+ * Better prompt bar behavior for the top voice button and D-pad focus navigation.
+ * Refreshed default English copy for remote input prompts and a dedicated Simplified Chinese translation set.
+
 ### Screenshots:
  * __[Open screenshots](#screens)__
+
+### Remote input from your phone:
+ 1. Open LeanKeyboard on the TV and focus a text field.
+ 2. Make sure the TV and phone are connected to the same local network.
+ 3. Scan the QR code shown in the keyboard UI.
+ 4. Type on your phone and submit the text to the focused field on the TV.
+
+If no LAN address is available, LeanKeyboard will show that QR pairing is temporarily unavailable.
 
 ### Install LeanKeyboard:
 __Easy installation in less than 10 minutes with only FireTV__
