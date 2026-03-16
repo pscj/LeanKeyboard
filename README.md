@@ -7,6 +7,9 @@ __LeanKeyboard: Keyboard for Android-based set-top boxes and TVs:__
 
 This repository is based on the original LeanKeyboard project and includes additional improvements for local remote input and day-to-day TV typing.
 
+ * English: [README.md](./README.md)
+ * 简体中文: [README.zh-CN.md](./README.zh-CN.md)
+
  * <a href="https://play.google.com/store/apps/details?id=org.liskovsoft.androidtv.rukeyboard" target="_blank">Google Play page</a>
  * <a href="https://t.me/LeanKeyboard">Telegram group</a>
 
