@@ -62,6 +62,7 @@ import com.liskovsoft.leankeyboard.utils.LeanKeyPreferences;
 import com.liskovsoft.leankeykeyboard.R;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -251,7 +252,7 @@ public class LeanbackKeyboardContainer {
             }
         });
         if (mTopVoiceButton != null) {
-            mTopVoiceButton.setOnClickListener(view -> startVoiceRecording());
+            mTopVoiceButton.setOnClickListener(view -> onVoiceClick());
         }
         mKeyboardManager = new KeyboardManager(mContext);
         initKeyboards();
@@ -544,7 +545,7 @@ public class LeanbackKeyboardContainer {
                     mPrevView = mMainKeyboardView;
                     break;
                 case KeyFocus.TYPE_VOICE:
-                    mVoiceButtonView.setMicFocused(true);
+                    LeanbackUtils.sendAccessibilityEvent(mTopVoiceButton, true);
                     dismissMiniKeyboard();
                     break;
                 case KeyFocus.TYPE_ACTION:
@@ -645,6 +646,7 @@ public class LeanbackKeyboardContainer {
 
     public void clearSuggestions() {
         mSuggestions.removeAllViews();
+        updateTopVoiceButtonVisibility();
         if (getCurrFocus().type == KeyFocus.TYPE_SUGGESTION) {
             resetFocusCursor();
         }
@@ -681,6 +683,12 @@ public class LeanbackKeyboardContainer {
         }
 
         int count = mSuggestions.getChildCount();
+        if (newY < (float) keyboardTop && canFocusTopVoiceButton()) {
+            offsetRect(mRect, mTopVoiceButton);
+            configureFocus(focus, mRect, 0, KeyFocus.TYPE_VOICE);
+            return true;
+        }
+
         if (newY < (float) keyboardTop && count > 0 && mSuggestionsEnabled) {
             for (actionLeft = 0; actionLeft < count; ++actionLeft) {
                 View view = mSuggestions.getChildAt(actionLeft);
@@ -816,6 +824,14 @@ public class LeanbackKeyboardContainer {
                 }
 
                 if ((direction & DIRECTION_UP) != 0) {
+                    offsetRect(mRect, mMainKeyboardView);
+                    if (canFocusTopVoiceButton() &&
+                            startFocus.rect.top <= mRect.top + startFocus.rect.height() / 2) {
+                        offsetRect(mRect, mTopVoiceButton);
+                        configureFocus(nextFocus, mRect, 0, KeyFocus.TYPE_VOICE);
+                        return true;
+                    }
+
                     centerDelta = (float) ((double) centerY - (double) startFocus.rect.height() * DIRECTION_STEP_MULTIPLIER);
                 } else {
                     centerDelta = centerY;
@@ -827,6 +843,20 @@ public class LeanbackKeyboardContainer {
                 getPhysicalPosition(centerX, centerDelta, mTempPoint);
                 return getBestFocus(centerX, centerDelta, nextFocus);
             case KeyFocus.TYPE_VOICE:
+                if ((direction & DIRECTION_LEFT) != 0) {
+                    offsetRect(mRect, mTopVoiceButton);
+                    return getBestFocus((float) mRect.left - 1.0F, (float) mRect.centerY(), nextFocus);
+                }
+
+                if ((direction & DIRECTION_DOWN) != 0) {
+                    offsetRect(mRect, mActionButtonView);
+                    return getBestFocus((float) mRect.centerX(), (float) mRect.centerY(), nextFocus);
+                }
+
+                if ((direction & DIRECTION_UP) != 0 && mEscapeNorthEnabled) {
+                    escapeNorth();
+                }
+                break;
             default:
                 break;
             case KeyFocus.TYPE_ACTION:
@@ -857,10 +887,9 @@ public class LeanbackKeyboardContainer {
                     boolean right = (direction & DIRECTION_RIGHT) != 0;
 
                     if (left || right) {
-                        offsetRect(mRect, mRootView);
-                        MarginLayoutParams params = (MarginLayoutParams) mSuggestionsContainer.getLayoutParams();
-                        int leftCalc = mRect.left + params.leftMargin;
-                        int rightCalc = mRect.right - params.rightMargin;
+                        offsetRect(mRect, mSuggestionsContainer);
+                        int leftCalc = mRect.left;
+                        int rightCalc = mRect.right;
                         int focusIdx = startFocus.index;
                         byte delta;
                         if (left) {
@@ -887,6 +916,12 @@ public class LeanbackKeyboardContainer {
                             suggestion.requestFocus();
                             LeanbackUtils.sendAccessibilityEvent(suggestion.findViewById(R.id.text), true);
                             configureFocus(nextFocus, mRect, suggestIdx, KeyFocus.TYPE_SUGGESTION);
+                            return true;
+                        }
+
+                        if (right && canFocusTopVoiceButton()) {
+                            offsetRect(mRect, mTopVoiceButton);
+                            configureFocus(nextFocus, mRect, 0, KeyFocus.TYPE_VOICE);
                             return true;
                         }
                     }
@@ -939,6 +974,7 @@ public class LeanbackKeyboardContainer {
     }
 
     public void onInitInputView() {
+        updateTopVoiceButtonPosition();
         resetFocusCursor();
         mSelector.setVisibility(View.VISIBLE);
     }
@@ -1048,6 +1084,12 @@ public class LeanbackKeyboardContainer {
         mKeyboardsContainer.setLayoutParams(params);
         mMainKeyboardView.setKeyboard(mInitialMainKeyboard);
         mVoiceButtonView.setMicEnabled(mVoiceEnabled);
+        if (mTopVoiceButton != null) {
+            mTopVoiceButton.setEnabled(mVoiceEnabled);
+            mTopVoiceButton.setAlpha(mVoiceEnabled ? 1.0F : 0.1F);
+        }
+        updateTopVoiceButtonPosition();
+        updateTopVoiceButtonVisibility();
         resetVoice();
         dismissMiniKeyboard();
         if (!TextUtils.isEmpty(mEnterKeyText)) {
@@ -1282,6 +1324,8 @@ public class LeanbackKeyboardContainer {
             suggestion.setContentDescription(visibleSuggestions.get(oldCount));
         }
 
+        updateTopVoiceButtonVisibility();
+
         if (getCurrFocus().type == KeyFocus.TYPE_SUGGESTION) {
             resetFocusCursor();
         }
@@ -1317,6 +1361,88 @@ public class LeanbackKeyboardContainer {
         String normalizedSuggestion = suggestion.trim();
 
         return TextUtils.isEmpty(normalizedSuggestion) ? null : normalizedSuggestion;
+    }
+
+    private boolean canFocusTopVoiceButton() {
+        return mTopVoiceButton != null &&
+                mTopVoiceButton.getVisibility() == View.VISIBLE &&
+                mTopVoiceButton.isEnabled();
+    }
+
+    private void updateTopVoiceButtonVisibility() {
+        if (mTopVoiceButton == null) {
+            return;
+        }
+
+        boolean hasVisibleSuggestions = mSuggestions != null && mSuggestions.getChildCount() > 0;
+        boolean shouldShow = mSuggestionsEnabled && mVoiceEnabled && !hasVisibleSuggestions;
+        int visibility = shouldShow ? View.VISIBLE : View.INVISIBLE;
+
+        mTopVoiceButton.setVisibility(visibility);
+
+        if (!shouldShow && getCurrFocus().type == KeyFocus.TYPE_VOICE) {
+            resetFocusCursor();
+        }
+    }
+
+    private void updateTopVoiceButtonPosition() {
+        if (mTopVoiceButton == null || mTopVoiceButton.getVisibility() != View.VISIBLE) {
+            return;
+        }
+
+        mRootView.post(() -> {
+            if (mTopVoiceButton == null || mTopVoiceButton.getVisibility() != View.VISIBLE ||
+                    mMainKeyboardView == null || mMainKeyboardView.getWidth() == 0) {
+                return;
+            }
+
+            Rect promptBarRect = new Rect();
+            Rect keyboardRect = new Rect();
+            offsetRect(promptBarRect, mSuggestionsContainer);
+            offsetRect(keyboardRect, mMainKeyboardView);
+
+            int buttonWidth = mTopVoiceButton.getWidth();
+            int buttonHeight = mTopVoiceButton.getHeight();
+
+            if (buttonWidth == 0 || buttonHeight == 0) {
+                return;
+            }
+
+            int anchorCenterX = keyboardRect.centerX();
+            List<Key> keys = mMainKeyboardView.getKeyboard() != null ? mMainKeyboardView.getKeyboard().getKeys() : Collections.emptyList();
+
+            if (!keys.isEmpty()) {
+                int minKeyLeft = Integer.MAX_VALUE;
+                int maxKeyRight = Integer.MIN_VALUE;
+
+                for (Key key : keys) {
+                    if (key == null) {
+                        continue;
+                    }
+
+                    minKeyLeft = Math.min(minKeyLeft, key.x);
+                    maxKeyRight = Math.max(maxKeyRight, key.x + key.width);
+                }
+
+                if (minKeyLeft != Integer.MAX_VALUE && maxKeyRight != Integer.MIN_VALUE) {
+                    anchorCenterX = keyboardRect.left + (minKeyLeft + maxKeyRight) / 2;
+                }
+            }
+
+            int targetLeft = anchorCenterX - promptBarRect.left - buttonWidth / 2;
+            int targetTop = (promptBarRect.height() - buttonHeight) / 2;
+            int maxLeft = Math.max(0, promptBarRect.width() - buttonWidth);
+
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) mTopVoiceButton.getLayoutParams();
+            int resolvedLeft = Math.max(0, Math.min(targetLeft, maxLeft));
+            int resolvedTop = Math.max(0, targetTop);
+
+            if (params.leftMargin != resolvedLeft || params.topMargin != resolvedTop) {
+                params.leftMargin = resolvedLeft;
+                params.topMargin = resolvedTop;
+                mTopVoiceButton.setLayoutParams(params);
+            }
+        });
     }
 
     public void onLangKeyClick() {

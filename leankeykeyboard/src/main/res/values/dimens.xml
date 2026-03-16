@@ -34,6 +34,7 @@
     <dimen name="prompt_bar_spacing_top">4.0dip</dimen>
     <dimen name="prompt_voice_button_size">28.0dip</dimen>
     <dimen name="prompt_voice_button_icon_padding">6.0dip</dimen>
+    <dimen name="prompt_voice_button_spacing_start">12.0dip</dimen>
     <dimen name="remote_input_panel_width">172.0dip</dimen>
     <dimen name="remote_input_panel_height">204.0dip</dimen>
     <dimen name="remote_input_panel_margin_end">16.0dip</dimen>

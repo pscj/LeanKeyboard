@@ -130,7 +130,15 @@ public class LeanbackImeService extends KeyMapperImeService {
                     break;
                 case InputListener.ENTRY_TYPE_BACKSPACE:
                     clearSuggestionsDelayed();
-                    connection.deleteSurroundingText(1, 0);
+                    int charsBeforeCursor = LeanbackUtils.getCharLengthBeforeCursor(connection);
+                    int charsAfterCursor = LeanbackUtils.getCharLengthAfterCursor(connection);
+                    if (charsBeforeCursor > 0) {
+                        connection.deleteSurroundingText(1, 0);
+                    } else if (charsAfterCursor > 0) {
+                        connection.deleteSurroundingText(0, 1);
+                    } else {
+                        LeanbackUtils.sendDeleteKey(connection);
+                    }
                     mEnterSpaceBeforeCommitting = false;
                     updateSuggestions = true;
                     break;

@@ -108,6 +108,12 @@ public class LeanbackUtils {
         connection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
     }
 
+    public static void sendDeleteKey(InputConnection connection) {
+        KeyEvent downEvent = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL);
+        connection.sendKeyEvent(downEvent);
+        connection.sendKeyEvent(KeyEvent.changeAction(downEvent, KeyEvent.ACTION_UP));
+    }
+
     public static String getEditorLabel(EditorInfo info) {
         if (info != null && info.extras != null && info.extras.containsKey(EDITOR_LABEL)) {
             return info.extras.getString(EDITOR_LABEL);
