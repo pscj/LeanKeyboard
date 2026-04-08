@@ -9,9 +9,9 @@
     <LinearLayout
         android:id="@+id/input_content"
         android:orientation="horizontal"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
+        android:gravity="center_vertical"
         android:clipChildren="false">
         <LinearLayout
             android:id="@+id/remote_input_panel"
@@ -61,17 +61,20 @@
                 android:visibility="gone"
                 android:fontFamily="sans-serif-regular" />
         </LinearLayout>
-        <RelativeLayout
+        <FrameLayout
             android:id="@+id/keyboard_area"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
             android:clipChildren="false">
             <LinearLayout
                 android:id="@+id/keyboard"
                 android:orientation="horizontal"
                 android:clipChildren="false"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal">
                 <com.liskovsoft.leankeyboard.addons.resize.ResizeableLeanbackKeyboardView
                     android:id="@+id/main_keyboard"
                     android:clipChildren="false"
@@ -80,20 +83,15 @@
                     leanbackime:rowCount="5"
                     leanbackime:columnCount="11" />
             </LinearLayout>
-            <FrameLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignTop="@id/keyboard"
-                android:layout_alignBottom="@id/keyboard">
-                <com.liskovsoft.leankeyboard.ime.voice.RecognizerView
-                    android:id="@+id/voice"
-                    android:layout_gravity="center"
-                    android:visibility="invisible"
-                    android:layout_width="@dimen/recognizer_size"
-                    android:layout_height="@dimen/recognizer_size" />
-            </FrameLayout>
-        </RelativeLayout>
+            <com.liskovsoft.leankeyboard.ime.voice.RecognizerView
+                android:id="@+id/voice"
+                android:layout_gravity="center"
+                android:visibility="invisible"
+                android:layout_width="@dimen/recognizer_size"
+                android:layout_height="@dimen/recognizer_size" />
+        </FrameLayout>
         <FrameLayout
+            android:id="@+id/enter_container"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginLeft="@dimen/remote_input_panel_margin_end"
